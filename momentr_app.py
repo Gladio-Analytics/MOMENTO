@@ -63,7 +63,11 @@ def load_universe_prices(market, universe):
 @st.cache_data(show_spinner=False)
 def load_reference_prices(passive_ticker, active_ticker, rf_ticker):
     tickers = [passive_ticker, active_ticker, rf_ticker]
-    reference_close, _, _ = backend.fetch_prices(tickers, keep_survivors=True, ffill_prices=True)
+    reference_close, success, failed = backend.fetch_prices(tickers, keep_survivors=True, ffill_prices=True)
+    if failed:
+        fail_info = reference_close.attrs.get("fail_info", {})
+        details = "; ".join(f"{t}: {fail_info.get(t, 'unknown reason')}" for t in failed)
+        raise RuntimeError(f"Could not fetch reference ticker(s) from Yahoo Finance - {details}")
     return backend.prep_reference(reference_close, tickers)
 
 

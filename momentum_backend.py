@@ -1,10 +1,12 @@
+import time
 import numpy as np
 import pandas as pd
 import yfinance as yf
+from yfinance.exceptions import YFRateLimitError
 from tqdm.auto import tqdm
 
 
-def fetch_prices(tickers,  keep_survivors=True, ffill_prices=True):
+def fetch_prices(tickers, keep_survivors=True, ffill_prices=True, max_retries=3, retry_backoff=5.0):
     tickers = list(dict.fromkeys([str(t).strip().upper() for t in tickers if t]))
     #start_ts = pd.to_datetime(start)
 
@@ -15,7 +17,17 @@ def fetch_prices(tickers,  keep_survivors=True, ffill_prices=True):
 
     for t in tqdm(tickers, total=len(tickers)):
         try:
-            df = yf.download(t, period="max", interval="1d", auto_adjust=True, progress=False)
+            # Shared cloud IPs (e.g. Streamlit Community Cloud) get Yahoo-rate-limited far more
+            # easily than a home connection, so a transient 429 shouldn't sink the whole fetch.
+            df = None
+            for attempt in range(max_retries):
+                try:
+                    df = yf.download(t, period="max", interval="1d", auto_adjust=True, progress=False)
+                    break
+                except YFRateLimitError:
+                    if attempt == max_retries - 1:
+                        raise
+                    time.sleep(retry_backoff * (attempt + 1))
             if df is None or df.empty:
                 failed.append(t)
                 fail_info[t] = "empty"
