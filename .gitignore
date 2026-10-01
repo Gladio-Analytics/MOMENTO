@@ -4,10 +4,10 @@ __pycache__/
 # manual backups (git now handles this)
 *.py.bak
 
-# generated/cached data - regenerate locally via UPDATE_DB.ipynb
-Data Input/
-*.parquet
-gridsearch_*.csv
+# gridsearch outputs - stale under the current ledger model, regenerate via MOMENTUM_GRIDSEARCH.ipynb
+gridsearch_equity_curves.parquet
+gridsearch_combo_meta.parquet
+gridsearch_failures.csv
 
 # notebooks and modules not needed to run the Streamlit app
 MOMENTUM_NB.ipynb
