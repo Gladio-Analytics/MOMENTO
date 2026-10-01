@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+
+# manual backups (git now handles this)
+*.py.bak
+
+# generated/cached data - regenerate locally via UPDATE_DB.ipynb
+Data Input/
+*.parquet
+gridsearch_*.csv
+
+# notebooks and modules not needed to run the Streamlit app
+MOMENTUM_NB.ipynb
+MOMENTUM_GRIDSEARCH.ipynb
+momentum_postsignal.py
+test_momentum_backend.py
