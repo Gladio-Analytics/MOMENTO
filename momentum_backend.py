@@ -283,8 +283,11 @@ def add_metadata(df, metadata, how="left", require_same_index=True):
     d = df.copy()
     m = metadata.copy()
 
-    d.index = pd.to_datetime(d.index)
-    m.index = pd.to_datetime(m.index)
+    # pandas 2.x preserves whatever timestamp resolution the source had (e.g. parquet's
+    # datetime64[ms]) instead of upconverting to [ns] - normalize both so .equals() compares
+    # on values, not on resolution.
+    d.index = pd.to_datetime(d.index).as_unit("ns")
+    m.index = pd.to_datetime(m.index).as_unit("ns")
 
     if require_same_index:
         if not d.index.equals(m.index):

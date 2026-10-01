@@ -204,4 +204,8 @@ def load_price_data(indices=None, path="Data Input/prices.parquet"):
 
     wide = df.pivot(index="date", columns="ticker", values="adj_close")
     wide = wide.sort_index()
+    # parquet can store timestamps at ms resolution; pandas 2.x keeps that resolution on
+    # read instead of upconverting to [ns], which breaks index equality checks downstream
+    # against [ns] indexes built elsewhere (e.g. momentum_backend.add_metadata).
+    wide.index = pd.DatetimeIndex(wide.index).as_unit("ns")
     return wide
