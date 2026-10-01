@@ -188,7 +188,7 @@ def download_ohlcv_panels(tickers, start="2010-01-01", keep_survivors=True, ffil
     return panels, success, failed
 
 
-def load_price_data(indices=None, path=r"Data Input\prices.parquet"):
+def load_price_data(indices=None, path="Data Input/prices.parquet"):
     df = pd.read_parquet(path)
 
     if indices is not None:
