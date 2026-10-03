@@ -6,7 +6,7 @@ from yfinance.exceptions import YFRateLimitError
 from tqdm.auto import tqdm
 
 
-def fetch_prices(tickers, keep_survivors=True, ffill_prices=True, max_retries=3, retry_backoff=5.0):
+def fetch_prices(tickers, keep_survivors=True, ffill_prices=True, max_retries=2, retry_backoff=1.5):
     tickers = list(dict.fromkeys([str(t).strip().upper() for t in tickers if t]))
     #start_ts = pd.to_datetime(start)
 
