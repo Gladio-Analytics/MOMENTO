@@ -2831,7 +2831,24 @@ def build_current_pick_diagnostics(
         long_rows.append(rec)
 
     long_df = pd.DataFrame(long_rows)
-    wide_df = long_df.set_index("ticker").T
+
+    # wide_df is display-only: transposing puts each ticker's mixed-type fields (dates,
+    # floats, bools, strings) into one object-dtype column, which Arrow can't serialize
+    # (Streamlit logs a "Serialization ... unsuccessful" warning and coerces it anyway).
+    # Format to clean strings up front instead of letting Streamlit do it silently.
+    def _fmt_cell(v):
+        if v is None or (isinstance(v, float) and pd.isna(v)) or v is pd.NaT:
+            return ""
+        if isinstance(v, bool):
+            return "Yes" if v else "No"
+        if isinstance(v, (pd.Timestamp, np.datetime64)):
+            ts = pd.Timestamp(v)
+            return "" if pd.isna(ts) else ts.strftime("%Y-%m-%d")
+        if isinstance(v, float):
+            return f"{v:.4f}"
+        return str(v)
+
+    wide_df = long_df.set_index("ticker").T.map(_fmt_cell)
     meta = {
         "signal_date": signal_dt,
         "execution_date": execution_dt,
