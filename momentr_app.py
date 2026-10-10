@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 import streamlit as st
 
@@ -54,8 +56,16 @@ for k, v in DEFAULTS.items():
         st.session_state[k] = v
 
 
+PRICES_PATH = "Data Input/prices.parquet"
+
+
 @st.cache_data(show_spinner=False)
-def load_universe_prices(market, universe):
+def load_universe_prices(market, universe, _cache_bust):
+    # st.cache_data keys only on the arguments below, not on the file's contents, so a
+    # data-only git push (no .py/requirements.txt change) that doesn't restart the running
+    # container would otherwise keep serving the old parquet read forever. Including the
+    # file's mtime forces a fresh read whenever the cache is refreshed, regardless of
+    # whether the process itself restarted.
     indices = UNIVERSE_TO_INDICES[(market, universe)]
     return fetch.load_price_data(indices=indices)
 
@@ -233,7 +243,7 @@ run_clicked = st.button("Run backtest", type="primary", disabled=len(errors) > 0
 if run_clicked:
     progress_bar = st.progress(0.0, text=PROGRESS_STAGES[0])
     try:
-        adj_close = load_universe_prices(market, universe)
+        adj_close = load_universe_prices(market, universe, os.path.getmtime(PRICES_PATH))
         progress_bar.progress(1 / len(PROGRESS_STAGES), text=PROGRESS_STAGES[1])
 
         reference_close = load_reference_prices(passive_bench_ticker, active_bench_ticker, riskfree_ticker)
